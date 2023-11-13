@@ -3,11 +3,14 @@ package com.nitinson.app.taskchecker.domain;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import static com.nitinson.app.taskchecker.domain.TaskStatus.CREATED;
 
 @Entity
+@Table(name = "tasks")
 public class Task {
+
     @Id
     @GeneratedValue
     private Long id;
@@ -21,6 +24,14 @@ public class Task {
     }
 
     public Task() {}
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setStatus(TaskStatus status) {
+        this.status = status;
+    }
 
     public void setTitle(String title) {
         this.title = title;
@@ -36,6 +47,18 @@ public class Task {
 
     public Long getId() {
         return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public TaskStatus getStatus() {
+        return status;
     }
 
     public TaskDto toDto() {
