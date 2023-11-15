@@ -13,42 +13,43 @@ import java.util.stream.StreamSupport;
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
-    private final TaskRepository repository;
+    private final TaskService taskService;
 
     @Autowired
-    public TaskController(TaskRepository repository) {
-        this.repository = repository;
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
     }
 
     @PostMapping
     public ResponseEntity<Long> createTask(@RequestBody TaskDto taskDto) {
-        Task task = new Task(taskDto.getTitle());
-        task.setDescription(taskDto.getDescription());
 
-        Task savedTask = repository.save(task);
+        Task savedTask = taskService.addNewTask(taskDto);
         return ResponseEntity.ok(savedTask.getId());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskDto> getTask(@PathVariable Long id) {
-        Optional<Task> optionalTask = repository.findById(id);
+
+        Optional<Task> optionalTask = taskService.getTask(id);
         return optionalTask.map(task -> ResponseEntity.ok(task.toDto()))
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateTask(@PathVariable Long id, @RequestBody TaskDto updatedTaskDto) {
-        Optional<Task> optionalTask = repository.findById(id);
+    public ResponseEntity<String> updateTask(@PathVariable Long id,
+                                             @RequestBody TaskDto updatedTaskDto) {
+
+        Optional<Task> optionalTask = taskService.getTask(id);
         if (optionalTask.isPresent()) {
             Task task = optionalTask.get();
             String statusString = updatedTaskDto.getStatus();
 
-            if (isValidTaskStatus(statusString)){
+            if (isValidTaskStatus(statusString)) {
                 TaskStatus taskStatus = TaskStatus.valueOf(statusString);
                 task.setTitle(updatedTaskDto.getTitle());
                 task.setDescription(updatedTaskDto.getDescription());
                 task.setTaskStatus(taskStatus);
-                TaskDto savedDto = repository.save(task).toDto();
+                TaskDto savedDto = taskService.updateTask(task);
                 return ResponseEntity.ok(savedDto.toString());
             } else {
                 return ResponseEntity.badRequest().body("Available statuses are: CREATED, APPROVED, REJECTED, BLOCKED, DONE.");
@@ -70,8 +71,8 @@ public class TaskController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
+        if (taskService.taskExists(id)) {
+            taskService.deleteTasks(id);
             return ResponseEntity.ok().build();
         } else {
             return ResponseEntity.noContent().build();
@@ -80,7 +81,7 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<List<TaskDto>> getAllTasks() {
-        Iterable<Task> tasks = repository.findAll();
+        Iterable<Task> tasks = taskService.findAllTasks();
         List<TaskDto> taskDtos = StreamSupport.stream(tasks.spliterator(), false)
                 .map(Task::toDto)
                 .collect(Collectors.toList());
