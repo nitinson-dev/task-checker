@@ -1,9 +1,6 @@
 package com.nitinson.app.taskchecker.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import static com.nitinson.app.taskchecker.domain.TaskStatus.CREATED;
 
@@ -17,13 +14,14 @@ public class Task {
 
     private String title;
     private String description;
+    @Enumerated(EnumType.STRING)
     private TaskStatus status = CREATED;
-
     public Task(String title) {
         this.title = title;
     }
 
-    public Task() {}
+    public Task() {
+    }
 
     public void setId(Long id) {
         this.id = id;
